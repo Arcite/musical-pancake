@@ -1,11 +1,11 @@
-import random
+import numpy as np
 import os
 
 class Die:
 
     def __init__(self, sides):
-        random.seed(os.urandom(32))
+        np.random.RandomState()
         self.sides = sides
 
-    def roll(self):
-        return random.randint(1, self.sides)
+    def roll(self, times = 1):
+        return np.random.randint(1, self.sides, times)
