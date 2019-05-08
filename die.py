@@ -26,6 +26,14 @@ def hit_or_miss(rolls, ac):
     """
     return rolls >= ac
 
+def calculate_damage(hits, sides, modifier=0):
+    """
+    PRE:    hits is a numpy array of Boolean values where True represents a hit, and False a miss
+            sides is the number of sides on the damage die
+    FCTVAL === numpy array of random numbers between [1+modifier, sides+modifier] or 0 if False
+    """
+    return hits * roll_with_modifier(sides, len(hits), modifier)
+
 class TestDiceMethods(unittest.TestCase):
     """
     Class to test the die.py class
@@ -67,6 +75,20 @@ class TestDiceMethods(unittest.TestCase):
         t3 = np.array([11, 13, 15, 17, 19])
         v3 = np.array([False, False, True, True, True])
         self.assertTrue(np.all(hit_or_miss(t3, 15) == v3))
+
+    def test_calculate_damage(self):
+        """
+        Uses pregenerated arrays to verify calculate_damage
+        """
+        t1 = np.array([False, False, False, False, False])
+        v1 = np.array([0, 0, 0, 0, 0])
+        self.assertTrue(np.all(calculate_damage(t1, 6) == v1))
+
+        t2 = np.array([True, True, True, True, True])
+        self.assertTrue(np.all(calculate_damage(t2, 6) > 0))
+
+        results = calculate_damage(hit_or_miss(roll(20, 10000), 10), 8)
+        self.assertTrue(np.all(results >= 0) and np.all(results <= 8))
 
 
 if __name__ == '__main__':
