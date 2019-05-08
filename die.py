@@ -12,6 +12,12 @@ def roll(sides, times=1):
     """
     return np.random.randint(1, sides, times)
 
+def roll_with_modifier(sides, times=1, modifier=0):
+    """
+    FCTVAL === numpy array of times random numbers between [1+modifier, sides+modifier]
+    """
+    return roll(sides, times) + modifier
+
 class TestDiceMethods(unittest.TestCase):
     """
     Class to test the die.py class
@@ -30,6 +36,13 @@ class TestDiceMethods(unittest.TestCase):
         """
         results = roll(6, 10000)
         self.assertTrue(np.all(results > 0) & np.all(results < 6))
+
+    def test_roll_with_modifier(self):
+        """
+        Rolls a d20 10,000 times with a modifier of +5 and verifies they're all [6,25]
+        """
+        results = roll_with_modifier(20, 10000, 5)
+        self.assertTrue(np.all(results > 5) & np.all(results < 26)) 
 
 if __name__ == '__main__':
     unittest.main()
