@@ -6,17 +6,27 @@ import numpy as np
 
 np.random.RandomState()
 
-def roll(sides, times=1):
+def roll(dice, times=1):
     """
-    FCTVAL === numpy array of times random numbers between [1, sides]
+    PRE:    dice is an array of numbers where each number represents the highest number on that dice
+                ex) [20] = 1d20, [6, 6] = 2d6, [8, 6, 6, 6] = 1d8 + 3d6
+            times is the number of times to roll the dice combination
+    FCTVAL === numpy array of times random numbers between [len(dice), sum(dice)]
     """
-    return np.random.randint(1, sides, times)
+    retVal = np.zeros((1, times), dtype=np.int32)
+    for die in dice:
+        retVal = retVal + np.random.randint(1, die, times)
+    return retVal
 
-def roll_with_modifier(sides, times=1, modifier=0):
+def roll_with_modifier(dice, times=1, modifier=0):
     """
-    FCTVAL === numpy array of times random numbers between [1+modifier, sides+modifier]
+    PRE:    dice is an array of numbers where each number represents the highest number on that dice
+                ex) [20] = 1d20, [6, 6] = 2d6, [8, 6, 6, 6] = 1d8 + 3d6
+            times is the number of times to roll the dice combination
+            modifier is a number to add to each roll
+    FCTVAL === numpy array of times random numbers between [len(dice)+modifier, sum(dice)+modifier]
     """
-    return roll(sides, times) + modifier
+    return roll(dice, times) + modifier
 
 def hit_or_miss(rolls, ac):
     """
@@ -26,13 +36,15 @@ def hit_or_miss(rolls, ac):
     """
     return rolls >= ac
 
-def calculate_damage(hits, sides, modifier=0):
+def calculate_damage(hits, dice, modifier=0):
     """
     PRE:    hits is a numpy array of Boolean values where True represents a hit, and False a miss
-            sides is the number of sides on the damage die
+            dice is an array of numbers where each number represents the highest number on that dice
+                ex) [20] = 1d20, [6, 6] = 2d6, [8, 6, 6, 6] = 1d8 + 3d6
+            modifier is a number to add to each roll
     FCTVAL === numpy array of random numbers between [1+modifier, sides+modifier] or 0 if False
     """
-    return hits * roll_with_modifier(sides, len(hits), modifier)
+    return hits * roll_with_modifier(dice, len(hits), modifier)
 
 class TestDiceMethods(unittest.TestCase):
     """
@@ -43,22 +55,22 @@ class TestDiceMethods(unittest.TestCase):
         """
         Rolls a d20 10,000 times and verifies they're all [1,20]
         """
-        results = roll(20, 10000)
-        self.assertTrue(np.all(results > 0) & np.all(results < 21)) 
+        results = roll([20], 10000)
+        self.assertTrue(np.all(results >= 1) & np.all(results <= 20)) 
 
     def test_roll_d6(self):
         """
-        Rolls a d20 10,000 times and verifies they're all [1,6]
+        Rolls a 2d8 10,000 times and verifies they're all [2,16]
         """
-        results = roll(6, 10000)
-        self.assertTrue(np.all(results > 0) & np.all(results < 6))
+        results = roll([8, 8], 10000)
+        self.assertTrue(np.all(results >= 1) & np.all(results <= 16))
 
     def test_roll_with_modifier(self):
         """
         Rolls a d20 10,000 times with a modifier of +5 and verifies they're all [6,25]
         """
-        results = roll_with_modifier(20, 10000, 5)
-        self.assertTrue(np.all(results > 5) & np.all(results < 26))
+        results = roll_with_modifier([20], 10000, 5)
+        self.assertTrue(np.all(results >= 6) & np.all(results <= 25))
 
     def test_hit_or_miss(self):
         """
@@ -82,12 +94,12 @@ class TestDiceMethods(unittest.TestCase):
         """
         t1 = np.array([False, False, False, False, False])
         v1 = np.array([0, 0, 0, 0, 0])
-        self.assertTrue(np.all(calculate_damage(t1, 6) == v1))
+        self.assertTrue(np.all(calculate_damage(t1, [6]) == v1))
 
         t2 = np.array([True, True, True, True, True])
-        self.assertTrue(np.all(calculate_damage(t2, 6) > 0))
+        self.assertTrue(np.all(calculate_damage(t2, [6]) > 0))
 
-        results = calculate_damage(hit_or_miss(roll(20, 10000), 10), 8)
+        results = calculate_damage(hit_or_miss(roll([20], 10000), 10), [8])
         self.assertTrue(np.all(results >= 0) and np.all(results <= 8))
 
 
